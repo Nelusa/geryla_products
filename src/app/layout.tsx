@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import ReactQueryClientProvider from "@/library/providers/ReactQueryClientProvider";
+import {ReactNode} from "react";
+import Navigation from "@/app/layout/Navigation";
+import {classNames} from "@/library/utils/helpers";
+import Header from "@/app/layout/Header";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -12,11 +17,17 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={classNames(inter.className, "max-w-md mx-auto pt-10")}>
+      <ReactQueryClientProvider>
+        <Header/>
+        {children}
+        <Navigation/>
+      </ReactQueryClientProvider>
+      </body>
     </html>
   );
 }
