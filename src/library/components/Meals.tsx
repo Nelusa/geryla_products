@@ -3,19 +3,51 @@ import {useQuery} from "react-query";
 import Meal from "@/library/components/Meal";
 import MealType from "@/library/types/Meal";
 import {fetchMeals} from "@/library/services/meals";
+import Spinner from "@/library/components/Spinner";
 
-const Meals = () => {
+interface MealsByCategory {
+  [key: string]: MealType[];
+}
+
+interface MealsProps {
+  filter: string;
+}
+
+const Meals = ({filter}: MealsProps) => {
   const {data: meals, isError, isLoading} = useQuery('meals', fetchMeals);
 
-  if (isLoading) return <div>Loading...</div>;
-  if (isError) return <div>Error loading meals.</div>;
+  const mealsByCategory = meals?.reduce((acc: MealsByCategory, meal: MealType) => {
+    meal.categories.forEach((category: string) => {
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(meal);
+    });
+    return acc;
+  }, {});
+
+
+  if (isLoading) return <Spinner/>;
+  if (isError) return <p>Error loading meals.</p>;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-      {meals.map((meal: MealType) => (
-       <Meal meal={meal} key={meal.id}/>
-      ))}
-    </div>
+    Object.entries(mealsByCategory).map(([categoryName, meals]) => {
+      const filteredMeals: MealType[] = (meals as MealType[]).filter((meal) =>
+        meal.name.toLowerCase().includes(filter)
+      );
+
+      if (filteredMeals.length > 0) {
+        return (
+          <section key={categoryName} id={`category-content-${categoryName.toLowerCase()}`}>
+            <h2 className="text-2xl font-medium">{categoryName}</h2>
+            <div className="grid grid-cols-1 gap-4 px-2 py-2">
+              {filteredMeals.map((meal) => (
+                <Meal key={meal.id} meal={meal} />
+              ))}
+            </div>
+          </section>
+        );
+      }
+      return null;
+    })
   );
 }
 
